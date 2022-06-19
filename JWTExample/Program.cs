@@ -46,7 +46,8 @@ builder.Services.AddSwaggerGen(o =>
     o.AddSecurityRequirement(securityReq);
 });
 
-builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+//builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+builder.Services.AddDbContext<AppDbContext>(opt => opt.UseInMemoryDatabase(databaseName: "JWTExample"));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddAuthentication(o =>
 {
@@ -67,9 +68,8 @@ builder.Services.AddAuthentication(o =>
     };
 });
 
-
+builder.Services.AddRazorPages();
 var app = builder.Build();
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -77,14 +77,18 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    SeedData.Initialize(services);
+}
 //JWT 
 app.MapGet("/api/employees",
 [Authorize] (AppDbContext db) =>
 {
     return Results.Ok(db.Employees.ToList());
 });
-
-
 
 app.MapPost("/api/employees",
 [Authorize] (AppDbContext db, Employee emp) =>
@@ -96,14 +100,15 @@ app.MapPost("/api/employees",
 });
 
 app.UseAuthentication();
-
+app.UseStaticFiles();   
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapRazorPages();
+
 app.MapPost("/api/security/getToken",
 [AllowAnonymous] (User user) =>
 {
-
     if (user.UserName == "user1" && user.Password == "password1")
     {
         var issuer = builder.Configuration["Jwt:Issuer"];
@@ -125,8 +130,5 @@ app.MapPost("/api/security/getToken",
         return Results.Unauthorized();
     }
 });
-
-
-
 
 app.Run();
