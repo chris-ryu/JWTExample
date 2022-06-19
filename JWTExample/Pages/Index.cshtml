@@ -1,0 +1,70 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@page
+@{
+}
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Index</title>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+</head>
+<body>
+
+    <h3>Login Form</h3>
+    <br /><br />
+    <div id="msg"></div>
+    <br /><br />
+    <form method="post" asp-page="Index">
+        <table>
+            <tr>
+                <td>Username</td>
+                <td><input id="userName" type="text" /></td>
+            </tr>
+            <tr>
+                <td>Password</td>
+                <td><input id="password" type="password" /></td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+                <td><button id="login" type="button">Login</button></td>
+            </tr>
+        </table>
+    </form>
+
+    <script type="text/javascript">
+$(document).ready(function() {
+    console.log("document.ready")
+    $("#login").click(function() {
+        console.log("login.click");
+        var options = {};
+    options.url = "/api/security/getToken";
+    options.type = "POST";
+    var obj = {};
+    obj.userName = $("#userName").val();
+    obj.password = $("#password").val();
+    options.data = JSON.stringify(obj);
+    options.contentType = "application/json";
+    options.dataType = "json";
+    options.success = function (token) {
+        sessionStorage.setItem("token", token);
+        $.ajaxSetup({
+            beforeSend : function (request) {
+                    request.setRequestHeader("Authorization", "Bearer " + sessionStorage.getItem("token"));
+            }
+        });
+        $("#msg").html("<h2>Sign In Success</h2>");
+    };
+    options.error = function () {
+        $("#msg").html("<h2>Sign In Error</h2>");
+    };
+    $.ajax(options);
+    });
+});
+    </script>
+</body>
+
+</html>
