@@ -69,6 +69,8 @@ builder.Services.AddAuthentication(o =>
 });
 
 builder.Services.AddRazorPages();
+builder.Services.AddSession();
+
 var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -76,6 +78,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseSession();
 
 using (var scope = app.Services.CreateScope())
 {
